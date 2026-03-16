@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 // ─── IT ASSETS ────────────────────────────────────────────────────────────────
 const ASSET_TYPES = ["Laptop","Desktop","Mobile Device","Server","Monitor","Keyboard/Mouse","Peripheral","Other"];
@@ -58,6 +58,10 @@ const ST_BLANK = { particulars:"", qty:"", unitPrice:"", unitType:"Piece", asset
 let _stCounter = 6;
 const genStId = () => `STD-${String(_stCounter++).padStart(4,"0")}`;
 
+const lsGet = (key, fallback) => { try { const d = localStorage.getItem(key); return d ? JSON.parse(d) : fallback; } catch { return fallback; } };
+const lsSet = (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} };
+const syncCounter = (data, prefix, ref) => { data.forEach(a => { const n = parseInt((a.id||"").replace(prefix+"-",""))||0; if(n >= ref.val) ref.val = n+1; }); };
+
 const ST_COLS = [
   { key:"id",            label:"ID" },
   { key:"particulars",   label:"Particulars" },
@@ -83,7 +87,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("it");
 
   // ── IT state ──
-  const [assets, setAssets]             = useState(IT_SAMPLE);
+  const [assets, setAssets]             = useState(() => { const d = lsGet("it_assets", IT_SAMPLE); syncCounter(d, "AST", {get val(){return _itCounter}, set val(v){_itCounter=v;}}); return d; });
   const [itSearch, setItSearch]         = useState("");
   const [fType, setFType]               = useState("All");
   const [fStatus, setFStatus]           = useState("All");
@@ -97,7 +101,7 @@ export default function App() {
   const [itCsvRaw, setItCsvRaw]         = useState("");
 
   // ── Studio state ──
-  const [studio, setStudio]             = useState(ST_SAMPLE);
+  const [studio, setStudio]             = useState(() => { const d = lsGet("st_items", ST_SAMPLE); syncCounter(d, "STD", {get val(){return _stCounter}, set val(v){_stCounter=v;}}); return d; });
   const [stSearch, setStSearch]         = useState("");
   const [fVendor, setFVendor]           = useState("All");
   const [stSort, setStSort]             = useState({ col:"id", dir:"asc" });
@@ -110,6 +114,9 @@ export default function App() {
   const [stCsvRaw, setStCsvRaw]         = useState("");
 
   const [toast, setToast] = useState(null);
+
+  useEffect(() => { lsSet("it_assets", assets); }, [assets]);
+  useEffect(() => { lsSet("st_items", studio); }, [studio]);
 
   const showToast = (msg, type="ok") => { setToast({ msg, type }); setTimeout(() => setToast(null), 2600); };
   const now = new Date();
