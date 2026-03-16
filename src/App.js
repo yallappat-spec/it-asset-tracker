@@ -1,4 +1,8 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+
+// ─── GOOGLE SHEETS CONFIG ─────────────────────────────────────────────────────
+// Paste your Apps Script Web App URL below after deploying (see google-apps-script.js)
+const SHEET_URL = "";
 
 // ─── IT ASSETS ────────────────────────────────────────────────────────────────
 const ASSET_TYPES = ["Laptop","Desktop","Mobile Device","Server","Monitor","Keyboard/Mouse","Peripheral","Other"];
@@ -113,10 +117,34 @@ export default function App() {
   const [stCsvPreview, setStCsvPreview] = useState([]);
   const [stCsvRaw, setStCsvRaw]         = useState("");
 
-  const [toast, setToast] = useState(null);
+  const [toast, setToast]   = useState(null);
+  const [syncing, setSyncing] = useState(false);
+  const initialized = useRef(false);
 
-  useEffect(() => { lsSet("it_assets", assets); }, [assets]);
-  useEffect(() => { lsSet("st_items", studio); }, [studio]);
+  // ── Google Sheets sync ──
+  const saveSheet = (type, data) => {
+    if (!SHEET_URL) return;
+    fetch(SHEET_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ type, data }),
+    }).catch(() => {});
+  };
+
+  // Load from Google Sheets on first mount; fall back to localStorage
+  useEffect(() => {
+    if (!SHEET_URL) { initialized.current = true; return; }
+    setSyncing(true);
+    fetch(SHEET_URL)
+      .then(r => r.json())
+      .then(d => {
+        if (d.it && d.it.length)     { setAssets(d.it);   lsSet("it_assets", d.it); }
+        if (d.studio && d.studio.length) { setStudio(d.studio); lsSet("st_items", d.studio); }
+      })
+      .catch(() => {})
+      .finally(() => { setSyncing(false); initialized.current = true; });
+  // eslint-disable-next-line
+  }, []);
 
   const showToast = (msg, type="ok") => { setToast({ msg, type }); setTimeout(() => setToast(null), 2600); };
   const now = new Date();
@@ -144,11 +172,17 @@ export default function App() {
   const saveIt = () => {
     if (!itForm.name.trim())   return setItErr("Asset name is required.");
     if (!itForm.serial.trim()) return setItErr("Serial number is required.");
-    if (itModal.mode==="add") { setAssets(p=>[...p,{...itForm,id:genItId()}]); showToast("Asset added."); }
-    else { setAssets(p=>p.map(a=>a.id===itModal.asset.id?{...itForm,id:a.id}:a)); showToast("Asset updated."); }
+    let next;
+    if (itModal.mode==="add") { next = [...assets, {...itForm, id:genItId()}]; showToast("Asset added."); }
+    else { next = assets.map(a => a.id===itModal.asset.id ? {...itForm,id:a.id} : a); showToast("Asset updated."); }
+    setAssets(next); lsSet("it_assets", next); saveSheet("it", next);
     setItModal(null);
   };
-  const deleteIt = () => { setAssets(p=>p.filter(a=>a.id!==itDel.id)); showToast("Asset deleted.","warn"); setItDel(null); if(itModal) setItModal(null); };
+  const deleteIt = () => {
+    const next = assets.filter(a=>a.id!==itDel.id);
+    setAssets(next); lsSet("it_assets", next); saveSheet("it", next);
+    showToast("Asset deleted.","warn"); setItDel(null); if(itModal) setItModal(null);
+  };
 
   const exportItCSV = () => {
     const keys = ["id","product","manufacturer","name","assetTag","serial","acquisition","warranty","location","status","assignedTo","department","type","invoice"];
@@ -174,7 +208,9 @@ export default function App() {
     const hdr = lines[0].split(",").map(h=>h.replace(/"/g,"").trim());
     const MAP = { "Product":"product","Product Manufacturer":"manufacturer","Asset Name":"name","Asset Tag":"assetTag","Serial Number":"serial","Acquisition Date":"acquisition","Warranty Expiry Date":"warranty","Location":"location","Asset State":"status","Assign to User":"assignedTo","Assign to Department":"department","Asset Type":"type","Invoice Number":"invoice" };
     const items = lines.slice(1).map(line=>{ const v=line.split(",").map(x=>x.replace(/"/g,"").trim()); const o={id:genItId()}; hdr.forEach((h,i)=>{ o[MAP[h]||h]=v[i]||""; }); return o; });
-    setAssets(p=>[...p,...items]); showToast(`${items.length} assets uploaded!`); setItUpload(false); setItCsvPreview([]); setItCsvRaw("");
+    const next = [...assets, ...items];
+    setAssets(next); lsSet("it_assets", next); saveSheet("it", next);
+    showToast(`${items.length} assets uploaded!`); setItUpload(false); setItCsvPreview([]); setItCsvRaw("");
   };
 
   const fi = (k,v) => setItForm(p=>({...p,[k]:v}));
@@ -204,11 +240,17 @@ export default function App() {
   const saveSt = () => {
     if (!stForm.particulars.trim()) return setStErr("Particulars is required.");
     if (!stForm.qty.trim())         return setStErr("Qty is required.");
-    if (stModal.mode==="add") { setStudio(p=>[...p,{...stForm,id:genStId()}]); showToast("Item added."); }
-    else { setStudio(p=>p.map(a=>a.id===stModal.asset.id?{...stForm,id:a.id}:a)); showToast("Item updated."); }
+    let next;
+    if (stModal.mode==="add") { next = [...studio, {...stForm, id:genStId()}]; showToast("Item added."); }
+    else { next = studio.map(a => a.id===stModal.asset.id ? {...stForm,id:a.id} : a); showToast("Item updated."); }
+    setStudio(next); lsSet("st_items", next); saveSheet("studio", next);
     setStModal(null);
   };
-  const deleteSt = () => { setStudio(p=>p.filter(a=>a.id!==stDel.id)); showToast("Item deleted.","warn"); setStDel(null); if(stModal) setStModal(null); };
+  const deleteSt = () => {
+    const next = studio.filter(a=>a.id!==stDel.id);
+    setStudio(next); lsSet("st_items", next); saveSheet("studio", next);
+    showToast("Item deleted.","warn"); setStDel(null); if(stModal) setStModal(null);
+  };
 
   const exportStCSV = () => {
     const keys = ["id","particulars","qty","unitPrice","unitType","assetCode","vendorName","invoiceDate","invoiceNumber"];
@@ -234,7 +276,9 @@ export default function App() {
     const hdr = lines[0].split(",").map(h=>h.replace(/"/g,"").trim());
     const MAP = { "Particulars":"particulars","Qty":"qty","Unit Price":"unitPrice","Unit type":"unitType","Total":"total","Asset Code":"assetCode","Vendor Name":"vendorName","Invoice Date":"invoiceDate","Invoice Number":"invoiceNumber" };
     const items = lines.slice(1).map(line=>{ const v=line.split(",").map(x=>x.replace(/"/g,"").trim()); const o={id:genStId()}; hdr.forEach((h,i)=>{ o[MAP[h]||h]=v[i]||""; }); return o; });
-    setStudio(p=>[...p,...items]); showToast(`${items.length} items uploaded!`); setStUpload(false); setStCsvPreview([]); setStCsvRaw("");
+    const next = [...studio, ...items];
+    setStudio(next); lsSet("st_items", next); saveSheet("studio", next);
+    showToast(`${items.length} items uploaded!`); setStUpload(false); setStCsvPreview([]); setStCsvRaw("");
   };
 
   const fs = (k,v) => setStForm(p=>({...p,[k]:v}));
@@ -254,7 +298,12 @@ export default function App() {
             </div>
             <div>
               <div style={S.brandTitle}>Kushals Retail</div>
-              <div style={S.brandSub}>Asset & Inventory Registry</div>
+              <div style={S.brandSub}>
+                Asset & Inventory Registry
+                {syncing && <span style={{ marginLeft:8, color:"#0ea5e9", fontSize:10, fontWeight:600 }}>⟳ Syncing…</span>}
+                {!syncing && SHEET_URL && <span style={{ marginLeft:8, color:"#16a34a", fontSize:10, fontWeight:600 }}>● Sheets connected</span>}
+                {!SHEET_URL && <span style={{ marginLeft:8, color:"#f59e0b", fontSize:10, fontWeight:600 }}>⚠ Add SHEET_URL to sync</span>}
+              </div>
             </div>
           </div>
 
