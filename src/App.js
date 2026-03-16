@@ -239,11 +239,11 @@ export default function App() {
               </thead>
               <tbody>
                 {filtered.length === 0
-                  ? <tr><td colSpan={TABLE_COLS.length + 1} style={{ padding:"60px 0", textAlign:"center", color:"#374151", fontSize:14 }}>No assets match your filters.</td></tr>
+                  ? <tr><td colSpan={TABLE_COLS.length + 1} style={{ padding:"60px 0", textAlign:"center", color:"#94a3b8", fontSize:14 }}>No assets match your filters.</td></tr>
                   : filtered.map(a => (
                     <tr key={a.id} className="row">
                       <td className="td mono sky">{a.id}</td>
-                      <td className="td"><span style={{ marginRight:6 }}>{TYPE_ICONS[a.type]||"📦"}</span><strong style={{ color:"#f9fafb" }}>{a.product}</strong></td>
+                      <td className="td"><span style={{ marginRight:6 }}>{TYPE_ICONS[a.type]||"📦"}</span><strong style={{ color:"#0f172a" }}>{a.product}</strong></td>
                       <td className="td muted sm">{a.manufacturer || <Dash/>}</td>
                       <td className="td muted">{a.name || <Dash/>}</td>
                       <td className="td mono sm" style={{ color:"#a78bfa" }}>{a.assetTag || <Dash/>}</td>
@@ -279,7 +279,7 @@ export default function App() {
         <div className="overlay" onClick={closeModal}>
           <div style={S.modal} onClick={e => e.stopPropagation()}>
             <div style={S.mHead}>
-              <span style={{ fontWeight:700, fontSize:15, color:"#f9fafb" }}>
+              <span style={{ fontWeight:700, fontSize:15, color:"#0f172a" }}>
                 {modal.mode === "add" ? "Add New Asset" : `Edit — ${modal.asset.id}`}
               </span>
               <button className="ico" onClick={closeModal} style={{ fontSize:22, lineHeight:1 }}>×</button>
@@ -319,8 +319,8 @@ export default function App() {
               <button className="ico" onClick={() => setDelTarget(null)} style={{ fontSize:22 }}>×</button>
             </div>
             <div style={{ padding:"20px 28px" }}>
-              <p style={{ fontSize:14, color:"#9ca3af", lineHeight:1.8, marginBottom:20 }}>
-                Permanently delete <strong style={{ color:"#f9fafb" }}>{delTarget.name || delTarget.product}</strong> ({delTarget.id})?<br/>This cannot be undone.
+              <p style={{ fontSize:14, color:"#64748b", lineHeight:1.8, marginBottom:20 }}>
+                Permanently delete <strong style={{ color:"#0f172a" }}>{delTarget.name || delTarget.product}</strong> ({delTarget.id})?<br/>This cannot be undone.
               </p>
               <div style={{ display:"flex", gap:10, justifyContent:"flex-end" }}>
                 <button className="btn-sec" onClick={() => setDelTarget(null)}>Cancel</button>
@@ -336,19 +336,19 @@ export default function App() {
         <div className="overlay" onClick={() => setUploadModal(false)}>
           <div style={{ ...S.modal, maxWidth:600 }} onClick={e => e.stopPropagation()}>
             <div style={S.mHead}>
-              <span style={{ fontWeight:700, fontSize:15, color:"#f9fafb" }}>📂 Upload Preview</span>
+              <span style={{ fontWeight:700, fontSize:15, color:"#0f172a" }}>📂 Upload Preview</span>
               <button className="ico" onClick={() => setUploadModal(false)} style={{ fontSize:22 }}>×</button>
             </div>
             <div style={{ padding:"20px 28px" }}>
-              <p style={{ fontSize:13, color:"#9ca3af", marginBottom:16 }}>
-                Showing first 5 rows of your CSV. Click <strong style={{ color:"#f9fafb" }}>Confirm Upload</strong> to add all records.
+              <p style={{ fontSize:13, color:"#64748b", marginBottom:16 }}>
+                Showing first 5 rows of your CSV. Click <strong style={{ color:"#0f172a" }}>Confirm Upload</strong> to add all records.
               </p>
               <div style={{ overflowX:"auto", marginBottom:20 }}>
                 <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
                   <thead>
                     <tr>
                       {csvPreview[0] && Object.keys(csvPreview[0]).map(k => (
-                        <th key={k} style={{ padding:"8px 10px", background:"#0d0d0f", color:"#52525b", textAlign:"left", whiteSpace:"nowrap", borderBottom:"1px solid #1c1c22" }}>{k}</th>
+                        <th key={k} style={{ padding:"8px 10px", background:"#f8fafc", color:"#94a3b8", textAlign:"left", whiteSpace:"nowrap", borderBottom:"1px solid #e2e8f0" }}>{k}</th>
                       ))}
                     </tr>
                   </thead>
@@ -356,7 +356,7 @@ export default function App() {
                     {csvPreview.map((row, i) => (
                       <tr key={i}>
                         {Object.values(row).map((v, j) => (
-                          <td key={j} style={{ padding:"8px 10px", color:"#9ca3af", borderBottom:"1px solid #18181b", whiteSpace:"nowrap" }}>{v || "—"}</td>
+                          <td key={j} style={{ padding:"8px 10px", color:"#64748b", borderBottom:"1px solid #f1f5f9", whiteSpace:"nowrap" }}>{v || "—"}</td>
                         ))}
                       </tr>
                     ))}
@@ -389,7 +389,7 @@ const StatusBadge = ({ s }) => {
     </span>
   );
 };
-const Dash = () => <span style={{ color:"#374151" }}>—</span>;
+const Dash = () => <span style={{ color:"#cbd5e1" }}>—</span>;
 const FField = ({ label, val, set, type="text", ph="" }) => (
   <div>
     <label style={S.lbl}>{label}</label>
@@ -406,63 +406,63 @@ const FSel = ({ label, val, opts, set }) => (
 );
 
 const S = {
-  page:       { fontFamily:"'Inter',system-ui,sans-serif", background:"#dbeaf5", minHeight:"100vh", color:"#e5e7eb" },
-  header:     { background:"#111113", borderBottom:"1px solid #1c1c22", position:"sticky", top:0, zIndex:50 },
+  page:       { fontFamily:"'Inter',system-ui,sans-serif", background:"#f0f4f8", minHeight:"100vh", color:"#1e293b" },
+  header:     { background:"#ffffff", borderBottom:"1px solid #e2e8f0", position:"sticky", top:0, zIndex:50, boxShadow:"0 1px 3px rgba(0,0,0,.06)" },
   hInner:     { maxWidth:1400, margin:"0 auto", padding:"13px 28px", display:"flex", justifyContent:"space-between", alignItems:"center" },
   brand:      { display:"flex", alignItems:"center", gap:12 },
-  logoBox:    { width:40, height:40, background:"#0c1e30", border:"1px solid #0ea5e940", borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center" },
-  brandTitle: { fontWeight:700, fontSize:15, color:"#f9fafb" },
-  brandSub:   { fontSize:11, color:"#4b5563", marginTop:2, letterSpacing:.4 },
+  logoBox:    { width:40, height:40, background:"#e0f2fe", border:"1px solid #bae6fd", borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center" },
+  brandTitle: { fontWeight:700, fontSize:15, color:"#0f172a" },
+  brandSub:   { fontSize:11, color:"#94a3b8", marginTop:2, letterSpacing:.4 },
   main:       { maxWidth:1400, margin:"0 auto", padding:"28px" },
   cards:      { display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14, marginBottom:22 },
-  card:       { background:"#111113", border:"1px solid #1c1c22", borderTop:"3px solid", borderRadius:10, padding:"18px 22px" },
-  cardLabel:  { fontSize:11, color:"#6b7280", marginTop:6, letterSpacing:.4 },
+  card:       { background:"#ffffff", border:"1px solid #e2e8f0", borderTop:"3px solid", borderRadius:10, padding:"18px 22px", boxShadow:"0 1px 3px rgba(0,0,0,.04)" },
+  cardLabel:  { fontSize:11, color:"#94a3b8", marginTop:6, letterSpacing:.4 },
   filters:    { display:"flex", gap:12, marginBottom:18, alignItems:"center", flexWrap:"wrap" },
   searchBox:  { position:"relative", flex:"1 1 260px", minWidth:220 },
-  count:      { fontSize:12, color:"#4b5563", whiteSpace:"nowrap", marginLeft:"auto" },
-  tableWrap:  { background:"#111113", border:"1px solid #1c1c22", borderRadius:12, overflow:"hidden" },
+  count:      { fontSize:12, color:"#94a3b8", whiteSpace:"nowrap", marginLeft:"auto" },
+  tableWrap:  { background:"#ffffff", border:"1px solid #e2e8f0", borderRadius:12, overflow:"hidden", boxShadow:"0 1px 3px rgba(0,0,0,.04)" },
   table:      { width:"100%", borderCollapse:"collapse" },
-  modal:      { background:"#18181b", border:"1px solid #27272a", borderRadius:14, width:750, maxWidth:"95vw", maxHeight:"90vh", overflowY:"auto" },
-  mHead:      { padding:"20px 28px", borderBottom:"1px solid #1c1c22", display:"flex", justifyContent:"space-between", alignItems:"center" },
+  modal:      { background:"#ffffff", border:"1px solid #e2e8f0", borderRadius:14, width:750, maxWidth:"95vw", maxHeight:"90vh", overflowY:"auto", boxShadow:"0 20px 60px rgba(0,0,0,.12)" },
+  mHead:      { padding:"20px 28px", borderBottom:"1px solid #f1f5f9", display:"flex", justifyContent:"space-between", alignItems:"center" },
   grid2:      { display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 },
-  lbl:        { display:"block", fontSize:11, fontWeight:600, letterSpacing:.9, color:"#6b7280", textTransform:"uppercase", marginBottom:5 },
-  errBox:     { background:"#1f0606", border:"1px solid #7f1d1d", borderRadius:6, padding:"10px 14px", marginBottom:16, color:"#fca5a5", fontSize:13 },
+  lbl:        { display:"block", fontSize:11, fontWeight:600, letterSpacing:.9, color:"#94a3b8", textTransform:"uppercase", marginBottom:5 },
+  errBox:     { background:"#fef2f2", border:"1px solid #fecaca", borderRadius:6, padding:"10px 14px", marginBottom:16, color:"#dc2626", fontSize:13 },
   toast:      { position:"fixed", bottom:28, right:28, padding:"12px 18px", borderRadius:8, fontSize:13, fontWeight:600, border:"1px solid", zIndex:999 },
-  toastOk:    { background:"#052e16", borderColor:"#166534", color:"#4ade80" },
-  toastWarn:  { background:"#2d0707", borderColor:"#991b1b", color:"#fca5a5" },
+  toastOk:    { background:"#f0fdf4", borderColor:"#bbf7d0", color:"#16a34a" },
+  toastWarn:  { background:"#fef2f2", borderColor:"#fecaca", color:"#dc2626" },
 };
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
   * { box-sizing:border-box; }
   ::-webkit-scrollbar { width:5px; height:5px; }
-  ::-webkit-scrollbar-track { background:#09090b; }
-  ::-webkit-scrollbar-thumb { background:#27272a; border-radius:3px; }
-  .inp { width:100%; background:#09090b; border:1px solid #27272a; color:#f4f4f5; border-radius:7px; padding:9px 12px; font-size:13px; font-family:inherit; outline:none; transition:border .15s; }
+  ::-webkit-scrollbar-track { background:#f0f4f8; }
+  ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+  .inp { width:100%; background:#ffffff; border:1px solid #e2e8f0; color:#1e293b; border-radius:7px; padding:9px 12px; font-size:13px; font-family:inherit; outline:none; transition:border .15s; }
   .inp:focus { border-color:#0ea5e9; box-shadow:0 0 0 2px #0ea5e918; }
-  .inp::placeholder { color:#3f3f46; }
+  .inp::placeholder { color:#cbd5e1; }
   .sel { cursor:pointer; }
-  select option { background:#18181b; }
-  .th { padding:11px 16px; text-align:left; font-size:11px; font-weight:600; letter-spacing:.9px; text-transform:uppercase; color:#52525b; background:#0d0d0f; cursor:pointer; white-space:nowrap; user-select:none; border-bottom:1px solid #1c1c22; }
-  .th:hover { color:#a1a1aa; }
-  .td { padding:13px 16px; font-size:13px; border-bottom:1px solid #18181b; vertical-align:middle; white-space:nowrap; }
+  select option { background:#ffffff; color:#1e293b; }
+  .th { padding:11px 16px; text-align:left; font-size:11px; font-weight:600; letter-spacing:.9px; text-transform:uppercase; color:#94a3b8; background:#f8fafc; cursor:pointer; white-space:nowrap; user-select:none; border-bottom:1px solid #e2e8f0; }
+  .th:hover { color:#475569; }
+  .td { padding:13px 16px; font-size:13px; color:#334155; border-bottom:1px solid #f1f5f9; vertical-align:middle; white-space:nowrap; }
   .row:last-child .td { border-bottom:none; }
-  .row:hover .td { background:#111113; }
+  .row:hover .td { background:#f8fafc; }
   .mono { font-family:ui-monospace,'Cascadia Code',monospace; font-size:12px; font-weight:600; }
-  .sky { color:#0ea5e9; }
-  .muted { color:#71717a; }
+  .sky { color:#0284c7; }
+  .muted { color:#94a3b8; }
   .sm { font-size:12px; }
-  .wexp { font-size:12px; color:#f87171; }
-  .woon { font-size:12px; color:#fbbf24; }
-  .wnorm { font-size:12px; color:#52525b; }
+  .wexp { font-size:12px; color:#dc2626; }
+  .woon { font-size:12px; color:#d97706; }
+  .wnorm { font-size:12px; color:#94a3b8; }
   .btn-pri { display:inline-flex; align-items:center; gap:6px; background:#0ea5e9; color:#fff; border:none; border-radius:7px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; transition:background .15s; }
-  .btn-pri:hover { background:#38bdf8; }
-  .btn-sec { display:inline-flex; align-items:center; gap:6px; background:transparent; color:#a1a1aa; border:1px solid #27272a; border-radius:7px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s; }
-  .btn-sec:hover { border-color:#52525b; color:#f4f4f5; }
+  .btn-pri:hover { background:#0284c7; }
+  .btn-sec { display:inline-flex; align-items:center; gap:6px; background:#ffffff; color:#64748b; border:1px solid #e2e8f0; border-radius:7px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s; }
+  .btn-sec:hover { border-color:#94a3b8; color:#1e293b; }
   .btn-del { background:#dc2626; color:#fff; border:none; border-radius:7px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
-  .btn-del:hover { background:#ef4444; }
-  .ico { background:none; border:none; cursor:pointer; padding:5px 7px; border-radius:5px; font-size:14px; color:#52525b; transition:all .15s; }
-  .ico:hover { background:#1c1c22; color:#f4f4f5; }
-  .ico.danger:hover { background:#2d0707; }
-  .overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:100; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(6px); }
+  .btn-del:hover { background:#b91c1c; }
+  .ico { background:none; border:none; cursor:pointer; padding:5px 7px; border-radius:5px; font-size:14px; color:#94a3b8; transition:all .15s; }
+  .ico:hover { background:#f1f5f9; color:#334155; }
+  .ico.danger:hover { background:#fef2f2; }
+  .overlay { position:fixed; inset:0; background:rgba(15,23,42,.5); z-index:100; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(6px); }
 `;
