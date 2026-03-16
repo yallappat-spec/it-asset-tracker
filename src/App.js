@@ -86,8 +86,27 @@ const calcTotal = (qty, unitPrice) => {
   return (q * p).toLocaleString("en-IN");
 };
 
+// ─── CREDENTIALS ──────────────────────────────────────────────────────────────
+const VALID_USER = "Yallappa";
+const VALID_PASS = "Audit@1989";
+
 // ─── APP ──────────────────────────────────────────────────────────────────────
 export default function App() {
+  const [loggedIn, setLoggedIn]   = useState(() => sessionStorage.getItem("auth") === "1");
+  const [loginUser, setLoginUser] = useState("");
+  const [loginPass, setLoginPass] = useState("");
+  const [loginErr,  setLoginErr]  = useState("");
+  const [showPass,  setShowPass]  = useState(false);
+
+  const handleLogin = () => {
+    if (loginUser === VALID_USER && loginPass === VALID_PASS) {
+      sessionStorage.setItem("auth", "1");
+      setLoggedIn(true);
+    } else {
+      setLoginErr("Invalid User ID or Password.");
+    }
+  };
+
   const [activeTab, setActiveTab] = useState("it");
 
   // ── IT state ──
@@ -282,6 +301,35 @@ export default function App() {
   };
 
   const fs = (k,v) => setStForm(p=>({...p,[k]:v}));
+
+  if (!loggedIn) return (
+    <div style={{ minHeight:"100vh", background:"#f0f4f8", display:"flex", alignItems:"center", justifyContent:"center" }}>
+      <div style={{ background:"#fff", borderRadius:16, boxShadow:"0 4px 32px #0001", padding:"48px 40px", width:360, textAlign:"center" }}>
+        <div style={{ fontSize:40, marginBottom:8 }}>🖥️</div>
+        <div style={{ fontWeight:800, fontSize:22, color:"#1e293b", marginBottom:4 }}>IT Asset Tracker</div>
+        <div style={{ color:"#64748b", fontSize:13, marginBottom:28 }}>Kushals Retail · IT Asset Registry</div>
+        <div style={{ textAlign:"left", marginBottom:14 }}>
+          <label style={{ fontSize:12, fontWeight:600, color:"#475569", display:"block", marginBottom:4 }}>USER ID</label>
+          <input value={loginUser} onChange={e => { setLoginUser(e.target.value); setLoginErr(""); }} onKeyDown={e => e.key==="Enter" && handleLogin()} placeholder="Enter User ID"
+            style={{ width:"100%", padding:"10px 12px", borderRadius:8, border:"1.5px solid #e2e8f0", fontSize:14, outline:"none", boxSizing:"border-box" }} />
+        </div>
+        <div style={{ textAlign:"left", marginBottom:20 }}>
+          <label style={{ fontSize:12, fontWeight:600, color:"#475569", display:"block", marginBottom:4 }}>PASSWORD</label>
+          <div style={{ position:"relative" }}>
+            <input type={showPass ? "text" : "password"} value={loginPass} onChange={e => { setLoginPass(e.target.value); setLoginErr(""); }} onKeyDown={e => e.key==="Enter" && handleLogin()} placeholder="Enter Password"
+              style={{ width:"100%", padding:"10px 36px 10px 12px", borderRadius:8, border:"1.5px solid #e2e8f0", fontSize:14, outline:"none", boxSizing:"border-box" }} />
+            <span onClick={() => setShowPass(!showPass)} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", cursor:"pointer", fontSize:16, color:"#94a3b8" }}>
+              {showPass ? "🙈" : "👁️"}
+            </span>
+          </div>
+        </div>
+        {loginErr && <div style={{ color:"#dc2626", fontSize:13, marginBottom:14, background:"#fef2f2", padding:"8px 12px", borderRadius:8 }}>{loginErr}</div>}
+        <button onClick={handleLogin} style={{ width:"100%", padding:"12px", background:"#2563eb", color:"#fff", border:"none", borderRadius:8, fontSize:15, fontWeight:700, cursor:"pointer" }}>
+          Login
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div style={S.page}>
