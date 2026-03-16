@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 
 // ─── GOOGLE SHEETS CONFIG ─────────────────────────────────────────────────────
 // Paste your Apps Script Web App URL below after deploying (see google-apps-script.js)
-const SHEET_URL = "";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbx4Lq_sR4TDzO8mEYaA0L6bXqUkRXW8MsirkXSU8oiyrONxqb9xklE4VVZqjgyqmv9fhw/exec";
 
 // ─── IT ASSETS ────────────────────────────────────────────────────────────────
 const ASSET_TYPES = ["Laptop","Desktop","Mobile Device","Server","Monitor","Keyboard/Mouse","Peripheral","Other"];
