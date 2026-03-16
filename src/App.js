@@ -176,7 +176,7 @@ export default function App() {
             </div>
             <div>
               <div style={S.brandTitle}>IT Asset Tracker</div>
-              <div style={S.brandSub}>Kushals Retail · Asset Registry</div>
+              <div style={S.brandSub}>Kushals Retail · IT Asset Registry</div>
             </div>
           </div>
           <div style={{ display:"flex", gap:10, alignItems:"center" }}>
