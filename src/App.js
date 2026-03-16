@@ -406,7 +406,7 @@ const FSel = ({ label, val, opts, set }) => (
 );
 
 const S = {
-  page:       { fontFamily:"'Inter',system-ui,sans-serif", background:"#09090b", minHeight:"100vh", color:"#e5e7eb" },
+  page:       { fontFamily:"'Inter',system-ui,sans-serif", background:"#dbeaf5", minHeight:"100vh", color:"#e5e7eb" },
   header:     { background:"#111113", borderBottom:"1px solid #1c1c22", position:"sticky", top:0, zIndex:50 },
   hInner:     { maxWidth:1400, margin:"0 auto", padding:"13px 28px", display:"flex", justifyContent:"space-between", alignItems:"center" },
   brand:      { display:"flex", alignItems:"center", gap:12 },
