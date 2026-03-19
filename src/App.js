@@ -530,7 +530,7 @@ export default function App() {
 
   const faCounts = useMemo(() => ({
     total:    fixedAssets.length,
-    totalQty: fixedAssets.reduce((s,a)=>s+(parseFloat((a.qty||"").replace(/,/g,""))||0), 0),
+    totalQty: fixedAssets.reduce((s,a)=>s+(parseFloat((a.qty||"").toString().replace(/,/g,""))||0), 0),
   }), [fixedAssets]);
 
   const saveFa = () => {
@@ -570,8 +570,8 @@ export default function App() {
   const confirmFaUpload = () => {
     const lines = faCsvRaw.trim().split("\n");
     const hdr = lines[0].split(",").map(h=>h.replace(/"/g,"").trim());
-    const MAP = { "Store Name":"storeName","Asset Code":"assetCode","Serial No":"serialNo","Brand Name":"brandName","Asset Details":"assetDetails","Qty":"qty" };
-    const items = lines.slice(1).map(line=>{ const v=line.split(",").map(x=>x.replace(/"/g,"").trim()); const o={id:genFaId()}; hdr.forEach((h,i)=>{ o[MAP[h]||h]=v[i]||""; }); return o; });
+    const MAP = { "store name":"storeName","asset code":"assetCode","serial no":"serialNo","serial number":"serialNo","brand name":"brandName","asset details":"assetDetails","qty":"qty","quantity":"qty" };
+    const items = lines.slice(1).map(line=>{ const v=line.split(",").map(x=>x.replace(/"/g,"").trim()); const o={id:genFaId()}; hdr.forEach((h,i)=>{ o[MAP[h.toLowerCase()]||h]=v[i]||""; }); return o; });
     const next = items;
     setFixedAssets(next); lsSet("fa_items", next); saveSheet("fixedasset", next);
     showToast(`${items.length} fixed assets uploaded!`); setFaUpload(false); setFaCsvPreview([]); setFaCsvRaw("");
