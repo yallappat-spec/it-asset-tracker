@@ -10,19 +10,28 @@
 //   5. Paste that URL into SHEET_URL in src/App.js
 // ─────────────────────────────────────────────────────────────────────────────
 
-const IT_HEADERS = ["id","product","manufacturer","name","assetTag","serial","acquisition","warranty","location","status","assignedTo","department","type","invoice"];
-const ST_HEADERS = ["id","particulars","qty","unitPrice","unitType","assetCode","vendorName","invoiceDate","invoiceNumber"];
+const IT_HEADERS  = ["id","product","manufacturer","name","assetTag","serial","acquisition","warranty","location","status","assignedTo","department","type","invoice"];
+const ST_HEADERS  = ["id","particulars","qty","unitPrice","unitType","assetCode","vendorName","invoiceDate","invoiceNumber"];
+const MOB_HEADERS = ["id","userName","mobileImei","mobileNo","modelName","invoiceNo","location"];
+const PRN_HEADERS = ["id","outletName","serialNumber","modelName"];
+const FA_HEADERS  = ["id","storeName","assetCode","serialNo","brandName","assetDetails","qty"];
 
 // GET — load all data
-function doGet(e) {
+function doGet() {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var itSheet = ss.getSheetByName("IT Assets");
-    var stSheet = ss.getSheetByName("Studio Inventory");
+    var itSheet  = ss.getSheetByName("IT Assets");
+    var stSheet  = ss.getSheetByName("Studio Inventory");
+    var mobSheet = ss.getSheetByName("Mobile Phones");
+    var prnSheet = ss.getSheetByName("Printers");
+    var faSheet  = ss.getSheetByName("Fixed Assets");
 
     var result = {
-      it:     itSheet ? sheetToJson(itSheet,  IT_HEADERS) : [],
-      studio: stSheet ? sheetToJson(stSheet,  ST_HEADERS) : []
+      it:         itSheet  ? sheetToJson(itSheet,  IT_HEADERS)  : [],
+      studio:     stSheet  ? sheetToJson(stSheet,  ST_HEADERS)  : [],
+      mobile:     mobSheet ? sheetToJson(mobSheet, MOB_HEADERS) : [],
+      printer:    prnSheet ? sheetToJson(prnSheet, PRN_HEADERS) : [],
+      fixedasset: faSheet  ? sheetToJson(faSheet,  FA_HEADERS)  : []
     };
 
     return ContentService
@@ -47,6 +56,15 @@ function doPost(e) {
     } else if (payload.type === "studio") {
       var sheet = ss.getSheetByName("Studio Inventory") || ss.insertSheet("Studio Inventory");
       jsonToSheet(sheet, payload.data, ST_HEADERS);
+    } else if (payload.type === "mobile") {
+      var sheet = ss.getSheetByName("Mobile Phones") || ss.insertSheet("Mobile Phones");
+      jsonToSheet(sheet, payload.data, MOB_HEADERS);
+    } else if (payload.type === "printer") {
+      var sheet = ss.getSheetByName("Printers") || ss.insertSheet("Printers");
+      jsonToSheet(sheet, payload.data, PRN_HEADERS);
+    } else if (payload.type === "fixedasset") {
+      var sheet = ss.getSheetByName("Fixed Assets") || ss.insertSheet("Fixed Assets");
+      jsonToSheet(sheet, payload.data, FA_HEADERS);
     }
 
     return ContentService

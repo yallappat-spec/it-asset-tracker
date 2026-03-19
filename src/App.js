@@ -62,10 +62,6 @@ const ST_BLANK = { particulars:"", qty:"", unitPrice:"", unitType:"Piece", asset
 let _stCounter = 6;
 const genStId = () => `STD-${String(_stCounter++).padStart(4,"0")}`;
 
-const lsGet = (key, fallback) => { try { const d = localStorage.getItem(key); return d ? JSON.parse(d) : fallback; } catch { return fallback; } };
-const lsSet = (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} };
-const syncCounter = (data, prefix, ref) => { data.forEach(a => { const n = parseInt((a.id||"").replace(prefix+"-",""))||0; if(n >= ref.val) ref.val = n+1; }); };
-
 const ST_COLS = [
   { key:"id",            label:"ID" },
   { key:"particulars",   label:"Particulars" },
@@ -86,9 +82,74 @@ const calcTotal = (qty, unitPrice) => {
   return (q * p).toLocaleString("en-IN");
 };
 
+// ─── MOBILE PHONES ────────────────────────────────────────────────────────────
+const MOB_SAMPLE = [
+  { id:"MOB-0001", userName:"Ravi Kumar",   mobileImei:"354678901234567", mobileNo:"9876543210", modelName:"Samsung Galaxy S23", invoiceNo:"INV-MOB-001", location:"Bangalore HQ" },
+  { id:"MOB-0002", userName:"Meena Sharma", mobileImei:"354678901234568", mobileNo:"9876543211", modelName:"iPhone 14",          invoiceNo:"INV-MOB-002", location:"Hyderabad"    },
+  { id:"MOB-0003", userName:"Arjun Nair",   mobileImei:"354678901234569", mobileNo:"9876543212", modelName:"Redmi Note 12",      invoiceNo:"INV-MOB-003", location:"Chennai"       },
+];
+
+const MOB_BLANK = { userName:"", mobileImei:"", mobileNo:"", modelName:"", invoiceNo:"", location:"" };
+let _mobCounter = 4;
+const genMobId = () => `MOB-${String(_mobCounter++).padStart(4,"0")}`;
+
+const MOB_COLS = [
+  { key:"id",         label:"ID" },
+  { key:"userName",   label:"User Name" },
+  { key:"mobileImei", label:"IMEI Number" },
+  { key:"mobileNo",   label:"Mobile No" },
+  { key:"modelName",  label:"Model Name" },
+  { key:"invoiceNo",  label:"Invoice No" },
+  { key:"location",   label:"Location" },
+];
+
+// ─── PRINTERS ─────────────────────────────────────────────────────────────────
+const PRN_SAMPLE = [
+  { id:"PRN-0001", outletName:"Bangalore HQ",    serialNumber:"HP-SN-001", modelName:"HP LaserJet Pro M404n" },
+  { id:"PRN-0002", outletName:"Hyderabad Branch", serialNumber:"EPS-SN-002", modelName:"Epson L3150"           },
+  { id:"PRN-0003", outletName:"Chennai Outlet",   serialNumber:"CAN-SN-003", modelName:"Canon PIXMA G3010"     },
+];
+
+const PRN_BLANK = { outletName:"", serialNumber:"", modelName:"" };
+let _prnCounter = 4;
+const genPrnId = () => `PRN-${String(_prnCounter++).padStart(4,"0")}`;
+
+const PRN_COLS = [
+  { key:"id",           label:"ID" },
+  { key:"outletName",   label:"Outlet Name" },
+  { key:"serialNumber", label:"Serial Number" },
+  { key:"modelName",    label:"Model Name" },
+];
+
+// ─── FIXED ASSETS ─────────────────────────────────────────────────────────────
+const FA_SAMPLE = [
+  { id:"FA-0001", storeName:"Bangalore HQ",    assetCode:"KFJ-FA-001", serialNo:"FA-SN-001", brandName:"Godrej",  assetDetails:"Steel Almirah 4-door",    qty:"2" },
+  { id:"FA-0002", storeName:"Hyderabad Branch", assetCode:"KFJ-FA-002", serialNo:"FA-SN-002", brandName:"Wipro",   assetDetails:"Office Chair Ergonomic",   qty:"10" },
+  { id:"FA-0003", storeName:"Chennai Outlet",   assetCode:"KFJ-FA-003", serialNo:"FA-SN-003", brandName:"Carrier", assetDetails:"Split AC 1.5 Ton 5 Star",  qty:"3" },
+];
+
+const FA_BLANK = { storeName:"", assetCode:"", serialNo:"", brandName:"", assetDetails:"", qty:"" };
+let _faCounter = 4;
+const genFaId = () => `FA-${String(_faCounter++).padStart(4,"0")}`;
+
+const FA_COLS = [
+  { key:"id",           label:"ID" },
+  { key:"storeName",    label:"Store Name" },
+  { key:"assetCode",    label:"Asset Code" },
+  { key:"serialNo",     label:"Serial No" },
+  { key:"brandName",    label:"Brand Name" },
+  { key:"assetDetails", label:"Asset Details" },
+  { key:"qty",          label:"Qty" },
+];
+
 // ─── CREDENTIALS ──────────────────────────────────────────────────────────────
 const VALID_USER = "Yallappa";
 const VALID_PASS = "Audit@1989";
+
+// ─── HELPERS (module-level) ───────────────────────────────────────────────────
+const lsGet = (key, fallback) => { try { const d = localStorage.getItem(key); return d ? JSON.parse(d) : fallback; } catch { return fallback; } };
+const lsSet = (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} };
+const syncCounter = (data, prefix, ref) => { data.forEach(a => { const n = parseInt((a.id||"").replace(prefix+"-",""))||0; if(n >= ref.val) ref.val = n+1; }); };
 
 // ─── APP ──────────────────────────────────────────────────────────────────────
 export default function App() {
@@ -136,6 +197,42 @@ export default function App() {
   const [stCsvPreview, setStCsvPreview] = useState([]);
   const [stCsvRaw, setStCsvRaw]         = useState("");
 
+  // ── Mobile Phones state ──
+  const [mobiles, setMobiles]             = useState(() => { const d = lsGet("mob_items", MOB_SAMPLE); syncCounter(d, "MOB", {get val(){return _mobCounter}, set val(v){_mobCounter=v;}}); return d; });
+  const [mobSearch, setMobSearch]         = useState("");
+  const [mobSort, setMobSort]             = useState({ col:"id", dir:"asc" });
+  const [mobModal, setMobModal]           = useState(null);
+  const [mobForm, setMobForm]             = useState(MOB_BLANK);
+  const [mobErr, setMobErr]               = useState("");
+  const [mobDel, setMobDel]               = useState(null);
+  const [mobUpload, setMobUpload]         = useState(false);
+  const [mobCsvPreview, setMobCsvPreview] = useState([]);
+  const [mobCsvRaw, setMobCsvRaw]         = useState("");
+
+  // ── Printers state ──
+  const [printers, setPrinters]             = useState(() => { const d = lsGet("prn_items", PRN_SAMPLE); syncCounter(d, "PRN", {get val(){return _prnCounter}, set val(v){_prnCounter=v;}}); return d; });
+  const [prnSearch, setPrnSearch]           = useState("");
+  const [prnSort, setPrnSort]               = useState({ col:"id", dir:"asc" });
+  const [prnModal, setPrnModal]             = useState(null);
+  const [prnForm, setPrnForm]               = useState(PRN_BLANK);
+  const [prnErr, setPrnErr]                 = useState("");
+  const [prnDel, setPrnDel]                 = useState(null);
+  const [prnUpload, setPrnUpload]           = useState(false);
+  const [prnCsvPreview, setPrnCsvPreview]   = useState([]);
+  const [prnCsvRaw, setPrnCsvRaw]           = useState("");
+
+  // ── Fixed Assets state ──
+  const [fixedAssets, setFixedAssets]         = useState(() => { const d = lsGet("fa_items", FA_SAMPLE); syncCounter(d, "FA", {get val(){return _faCounter}, set val(v){_faCounter=v;}}); return d; });
+  const [faSearch, setFaSearch]               = useState("");
+  const [faSort, setFaSort]                   = useState({ col:"id", dir:"asc" });
+  const [faModal, setFaModal]                 = useState(null);
+  const [faForm, setFaForm]                   = useState(FA_BLANK);
+  const [faErr, setFaErr]                     = useState("");
+  const [faDel, setFaDel]                     = useState(null);
+  const [faUpload, setFaUpload]               = useState(false);
+  const [faCsvPreview, setFaCsvPreview]       = useState([]);
+  const [faCsvRaw, setFaCsvRaw]               = useState("");
+
   const [toast, setToast]   = useState(null);
   const [syncing, setSyncing] = useState(false);
   const initialized = useRef(false);
@@ -157,8 +254,11 @@ export default function App() {
     fetch(SHEET_URL)
       .then(r => r.json())
       .then(d => {
-        if (d.it && d.it.length)     { setAssets(d.it);   lsSet("it_assets", d.it); }
-        if (d.studio && d.studio.length) { setStudio(d.studio); lsSet("st_items", d.studio); }
+        if (d.it && d.it.length)                   { setAssets(d.it);           lsSet("it_assets", d.it); }
+        if (d.studio && d.studio.length)           { setStudio(d.studio);       lsSet("st_items", d.studio); }
+        if (d.mobile && d.mobile.length)           { setMobiles(d.mobile);      lsSet("mob_items", d.mobile); }
+        if (d.printer && d.printer.length)         { setPrinters(d.printer);    lsSet("prn_items", d.printer); }
+        if (d.fixedasset && d.fixedasset.length)   { setFixedAssets(d.fixedasset); lsSet("fa_items", d.fixedasset); }
       })
       .catch(() => {})
       .finally(() => { setSyncing(false); initialized.current = true; });
@@ -302,6 +402,183 @@ export default function App() {
 
   const fs = (k,v) => setStForm(p=>({...p,[k]:v}));
 
+  // ── Mobile Phones logic ──
+  const mobFiltered = useMemo(() => {
+    const q = mobSearch.toLowerCase();
+    return [...mobiles]
+      .filter(a => !q || [a.id,a.userName,a.mobileImei,a.mobileNo,a.modelName,a.invoiceNo,a.location].join(" ").toLowerCase().includes(q))
+      .sort((a,b) => { const va=a[mobSort.col]||"",vb=b[mobSort.col]||""; return mobSort.dir==="asc"?va.localeCompare(vb):vb.localeCompare(va); });
+  }, [mobiles, mobSearch, mobSort]);
+
+  const mobCounts = useMemo(() => ({
+    total:     mobiles.length,
+    locations: new Set(mobiles.map(a=>a.location).filter(Boolean)).size,
+  }), [mobiles]);
+
+  const saveMob = () => {
+    if (!mobForm.userName.trim())   return setMobErr("User name is required.");
+    if (!mobForm.mobileImei.trim()) return setMobErr("IMEI number is required.");
+    let next;
+    if (mobModal.mode==="add") { next = [...mobiles, {...mobForm, id:genMobId()}]; showToast("Mobile added."); }
+    else { next = mobiles.map(a => a.id===mobModal.asset.id ? {...mobForm,id:a.id} : a); showToast("Mobile updated."); }
+    setMobiles(next); lsSet("mob_items", next); saveSheet("mobile", next);
+    setMobModal(null);
+  };
+  const deleteMob = () => {
+    const next = mobiles.filter(a=>a.id!==mobDel.id);
+    setMobiles(next); lsSet("mob_items", next); saveSheet("mobile", next);
+    showToast("Mobile deleted.","warn"); setMobDel(null); if(mobModal) setMobModal(null);
+  };
+
+  const exportMobCSV = () => {
+    const keys = ["id","userName","mobileImei","mobileNo","modelName","invoiceNo","location"];
+    const rows = [keys.join(","), ...mobFiltered.map(a=>keys.map(k=>`"${(a[k]||"").replace(/"/g,'""')}"`).join(","))];
+    dl(rows.join("\n"), "mobile-phones.csv");
+  };
+
+  const handleMobUpload = e => {
+    const file = e.target.files[0]; if(!file) return;
+    const r = new FileReader();
+    r.onload = ev => {
+      const text = ev.target.result; setMobCsvRaw(text);
+      const lines = text.trim().split("\n");
+      const hdr = lines[0].split(",").map(h=>h.replace(/"/g,"").trim());
+      setMobCsvPreview(lines.slice(1,6).map(line=>{ const v=line.split(",").map(x=>x.replace(/"/g,"").trim()); const o={}; hdr.forEach((h,i)=>o[h]=v[i]||""); return o; }));
+      setMobUpload(true);
+    };
+    r.readAsText(file);
+  };
+
+  const confirmMobUpload = () => {
+    const lines = mobCsvRaw.trim().split("\n");
+    const hdr = lines[0].split(",").map(h=>h.replace(/"/g,"").trim());
+    const MAP = { "User Name":"userName","IMEI Number":"mobileImei","Mobile No":"mobileNo","Model Name":"modelName","Invoice No":"invoiceNo","Location":"location" };
+    const items = lines.slice(1).map(line=>{ const v=line.split(",").map(x=>x.replace(/"/g,"").trim()); const o={id:genMobId()}; hdr.forEach((h,i)=>{ o[MAP[h]||h]=v[i]||""; }); return o; });
+    const next = [...mobiles, ...items];
+    setMobiles(next); lsSet("mob_items", next); saveSheet("mobile", next);
+    showToast(`${items.length} mobiles uploaded!`); setMobUpload(false); setMobCsvPreview([]); setMobCsvRaw("");
+  };
+
+  const fm = (k,v) => setMobForm(p=>({...p,[k]:v}));
+
+  // ── Printers logic ──
+  const prnFiltered = useMemo(() => {
+    const q = prnSearch.toLowerCase();
+    return [...printers]
+      .filter(a => !q || [a.id,a.outletName,a.serialNumber,a.modelName].join(" ").toLowerCase().includes(q))
+      .sort((a,b) => { const va=a[prnSort.col]||"",vb=b[prnSort.col]||""; return prnSort.dir==="asc"?va.localeCompare(vb):vb.localeCompare(va); });
+  }, [printers, prnSearch, prnSort]);
+
+  const prnCounts = useMemo(() => ({
+    total:   printers.length,
+    outlets: new Set(printers.map(a=>a.outletName).filter(Boolean)).size,
+  }), [printers]);
+
+  const savePrn = () => {
+    if (!prnForm.outletName.trim())   return setPrnErr("Outlet name is required.");
+    if (!prnForm.serialNumber.trim()) return setPrnErr("Serial number is required.");
+    let next;
+    if (prnModal.mode==="add") { next = [...printers, {...prnForm, id:genPrnId()}]; showToast("Printer added."); }
+    else { next = printers.map(a => a.id===prnModal.asset.id ? {...prnForm,id:a.id} : a); showToast("Printer updated."); }
+    setPrinters(next); lsSet("prn_items", next); saveSheet("printer", next);
+    setPrnModal(null);
+  };
+  const deletePrn = () => {
+    const next = printers.filter(a=>a.id!==prnDel.id);
+    setPrinters(next); lsSet("prn_items", next); saveSheet("printer", next);
+    showToast("Printer deleted.","warn"); setPrnDel(null); if(prnModal) setPrnModal(null);
+  };
+
+  const exportPrnCSV = () => {
+    const keys = ["id","outletName","serialNumber","modelName"];
+    const rows = [keys.join(","), ...prnFiltered.map(a=>keys.map(k=>`"${(a[k]||"").replace(/"/g,'""')}"`).join(","))];
+    dl(rows.join("\n"), "printers.csv");
+  };
+
+  const handlePrnUpload = e => {
+    const file = e.target.files[0]; if(!file) return;
+    const r = new FileReader();
+    r.onload = ev => {
+      const text = ev.target.result; setPrnCsvRaw(text);
+      const lines = text.trim().split("\n");
+      const hdr = lines[0].split(",").map(h=>h.replace(/"/g,"").trim());
+      setPrnCsvPreview(lines.slice(1,6).map(line=>{ const v=line.split(",").map(x=>x.replace(/"/g,"").trim()); const o={}; hdr.forEach((h,i)=>o[h]=v[i]||""); return o; }));
+      setPrnUpload(true);
+    };
+    r.readAsText(file);
+  };
+
+  const confirmPrnUpload = () => {
+    const lines = prnCsvRaw.trim().split("\n");
+    const hdr = lines[0].split(",").map(h=>h.replace(/"/g,"").trim());
+    const MAP = { "Outlet Name":"outletName","Serial Number":"serialNumber","Model Name":"modelName" };
+    const items = lines.slice(1).map(line=>{ const v=line.split(",").map(x=>x.replace(/"/g,"").trim()); const o={id:genPrnId()}; hdr.forEach((h,i)=>{ o[MAP[h]||h]=v[i]||""; }); return o; });
+    const next = [...printers, ...items];
+    setPrinters(next); lsSet("prn_items", next); saveSheet("printer", next);
+    showToast(`${items.length} printers uploaded!`); setPrnUpload(false); setPrnCsvPreview([]); setPrnCsvRaw("");
+  };
+
+  const fp = (k,v) => setPrnForm(p=>({...p,[k]:v}));
+
+  // ── Fixed Assets logic ──
+  const faFiltered = useMemo(() => {
+    const q = faSearch.toLowerCase();
+    return [...fixedAssets]
+      .filter(a => !q || [a.id,a.storeName,a.assetCode,a.serialNo,a.brandName,a.assetDetails].join(" ").toLowerCase().includes(q))
+      .sort((a,b) => { const va=a[faSort.col]||"",vb=b[faSort.col]||""; return faSort.dir==="asc"?va.localeCompare(vb):vb.localeCompare(va); });
+  }, [fixedAssets, faSearch, faSort]);
+
+  const faCounts = useMemo(() => ({
+    total:    fixedAssets.length,
+    totalQty: fixedAssets.reduce((s,a)=>s+(parseFloat((a.qty||"").replace(/,/g,""))||0), 0),
+  }), [fixedAssets]);
+
+  const saveFa = () => {
+    if (!faForm.storeName.trim()) return setFaErr("Store name is required.");
+    if (!faForm.assetCode.trim()) return setFaErr("Asset code is required.");
+    let next;
+    if (faModal.mode==="add") { next = [...fixedAssets, {...faForm, id:genFaId()}]; showToast("Fixed asset added."); }
+    else { next = fixedAssets.map(a => a.id===faModal.asset.id ? {...faForm,id:a.id} : a); showToast("Fixed asset updated."); }
+    setFixedAssets(next); lsSet("fa_items", next); saveSheet("fixedasset", next);
+    setFaModal(null);
+  };
+  const deleteFa = () => {
+    const next = fixedAssets.filter(a=>a.id!==faDel.id);
+    setFixedAssets(next); lsSet("fa_items", next); saveSheet("fixedasset", next);
+    showToast("Fixed asset deleted.","warn"); setFaDel(null); if(faModal) setFaModal(null);
+  };
+
+  const exportFaCSV = () => {
+    const keys = ["id","storeName","assetCode","serialNo","brandName","assetDetails","qty"];
+    const rows = [keys.join(","), ...faFiltered.map(a=>keys.map(k=>`"${(a[k]||"").replace(/"/g,'""')}"`).join(","))];
+    dl(rows.join("\n"), "fixed-assets.csv");
+  };
+
+  const handleFaUpload = e => {
+    const file = e.target.files[0]; if(!file) return;
+    const r = new FileReader();
+    r.onload = ev => {
+      const text = ev.target.result; setFaCsvRaw(text);
+      const lines = text.trim().split("\n");
+      const hdr = lines[0].split(",").map(h=>h.replace(/"/g,"").trim());
+      setFaCsvPreview(lines.slice(1,6).map(line=>{ const v=line.split(",").map(x=>x.replace(/"/g,"").trim()); const o={}; hdr.forEach((h,i)=>o[h]=v[i]||""); return o; }));
+      setFaUpload(true);
+    };
+    r.readAsText(file);
+  };
+
+  const confirmFaUpload = () => {
+    const lines = faCsvRaw.trim().split("\n");
+    const hdr = lines[0].split(",").map(h=>h.replace(/"/g,"").trim());
+    const MAP = { "Store Name":"storeName","Asset Code":"assetCode","Serial No":"serialNo","Brand Name":"brandName","Asset Details":"assetDetails","Qty":"qty" };
+    const items = lines.slice(1).map(line=>{ const v=line.split(",").map(x=>x.replace(/"/g,"").trim()); const o={id:genFaId()}; hdr.forEach((h,i)=>{ o[MAP[h]||h]=v[i]||""; }); return o; });
+    const next = [...fixedAssets, ...items];
+    setFixedAssets(next); lsSet("fa_items", next); saveSheet("fixedasset", next);
+    showToast(`${items.length} fixed assets uploaded!`); setFaUpload(false); setFaCsvPreview([]); setFaCsvRaw("");
+  };
+
+  const ff = (k,v) => setFaForm(p=>({...p,[k]:v}));
+
   if (!loggedIn) return (
     <div style={{ minHeight:"100vh", background:"#f0f4f8", display:"flex", alignItems:"center", justifyContent:"center" }}>
       <div style={{ background:"#fff", borderRadius:16, boxShadow:"0 4px 32px #0001", padding:"48px 40px", width:360, textAlign:"center" }}>
@@ -358,19 +635,44 @@ export default function App() {
           <div style={S.tabs}>
             <button className={activeTab==="it"?"tab tab-active":"tab"} onClick={()=>setActiveTab("it")}>💻 IT Assets</button>
             <button className={activeTab==="studio"?"tab tab-active":"tab"} onClick={()=>setActiveTab("studio")}>🎬 Studio Inventory</button>
+            <button className={activeTab==="mobile"?"tab tab-active":"tab"} onClick={()=>setActiveTab("mobile")}>📱 Mobile Phones</button>
+            <button className={activeTab==="printers"?"tab tab-active":"tab"} onClick={()=>setActiveTab("printers")}>🖨️ Printers</button>
+            <button className={activeTab==="fixedassets"?"tab tab-active":"tab"} onClick={()=>setActiveTab("fixedassets")}>🏢 Fixed Assets</button>
           </div>
 
-          {activeTab==="it" ? (
+          {activeTab==="it" && (
             <div style={{ display:"flex",gap:10,alignItems:"center" }}>
               <label className="btn-sec" style={{ cursor:"pointer" }}>⬆ Upload CSV<input type="file" accept=".csv" style={{ display:"none" }} onChange={handleItUpload}/></label>
               <button className="btn-sec" onClick={exportItCSV}>⬇ Export CSV</button>
               <button className="btn-pri" onClick={()=>{ setItForm(IT_BLANK); setItErr(""); setItModal({mode:"add"}); }}>+ Add Asset</button>
             </div>
-          ) : (
+          )}
+          {activeTab==="studio" && (
             <div style={{ display:"flex",gap:10,alignItems:"center" }}>
               <label className="btn-sec" style={{ cursor:"pointer" }}>⬆ Upload CSV<input type="file" accept=".csv" style={{ display:"none" }} onChange={handleStUpload}/></label>
               <button className="btn-sec" onClick={exportStCSV}>⬇ Export CSV</button>
               <button style={S.btnPurple} onClick={()=>{ setStForm(ST_BLANK); setStErr(""); setStModal({mode:"add"}); }}>+ Add Item</button>
+            </div>
+          )}
+          {activeTab==="mobile" && (
+            <div style={{ display:"flex",gap:10,alignItems:"center" }}>
+              <label className="btn-sec" style={{ cursor:"pointer" }}>⬆ Upload CSV<input type="file" accept=".csv" style={{ display:"none" }} onChange={handleMobUpload}/></label>
+              <button className="btn-sec" onClick={exportMobCSV}>⬇ Export CSV</button>
+              <button style={S.btnGreen} onClick={()=>{ setMobForm(MOB_BLANK); setMobErr(""); setMobModal({mode:"add"}); }}>+ Add Mobile</button>
+            </div>
+          )}
+          {activeTab==="printers" && (
+            <div style={{ display:"flex",gap:10,alignItems:"center" }}>
+              <label className="btn-sec" style={{ cursor:"pointer" }}>⬆ Upload CSV<input type="file" accept=".csv" style={{ display:"none" }} onChange={handlePrnUpload}/></label>
+              <button className="btn-sec" onClick={exportPrnCSV}>⬇ Export CSV</button>
+              <button style={S.btnOrange} onClick={()=>{ setPrnForm(PRN_BLANK); setPrnErr(""); setPrnModal({mode:"add"}); }}>+ Add Printer</button>
+            </div>
+          )}
+          {activeTab==="fixedassets" && (
+            <div style={{ display:"flex",gap:10,alignItems:"center" }}>
+              <label className="btn-sec" style={{ cursor:"pointer" }}>⬆ Upload CSV<input type="file" accept=".csv" style={{ display:"none" }} onChange={handleFaUpload}/></label>
+              <button className="btn-sec" onClick={exportFaCSV}>⬇ Export CSV</button>
+              <button style={S.btnTeal} onClick={()=>{ setFaForm(FA_BLANK); setFaErr(""); setFaModal({mode:"add"}); }}>+ Add Fixed Asset</button>
             </div>
           )}
         </div>
@@ -527,6 +829,180 @@ export default function App() {
         </main>
       )}
 
+      {/* ══════════════ MOBILE PHONES TAB ══════════════ */}
+      {activeTab==="mobile" && (
+        <main style={S.main}>
+          <div style={{ ...S.cards, gridTemplateColumns:"repeat(2,1fr)" }}>
+            {[
+              { label:"Total Mobiles", val:mobCounts.total,     accent:"#22c55e" },
+              { label:"Locations",     val:mobCounts.locations, accent:"#0ea5e9" },
+            ].map(c=>(
+              <div key={c.label} style={{ ...S.card, borderTopColor:c.accent }}>
+                <div style={{ fontSize:30,fontWeight:700,color:c.accent,lineHeight:1 }}>{c.val}</div>
+                <div style={S.cardLabel}>{c.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={S.filters}>
+            <div style={S.searchBox}>
+              <SearchIcon/>
+              <input className="inp" style={{ paddingLeft:36 }} placeholder="Search by user, IMEI, mobile no, model, location…" value={mobSearch} onChange={e=>setMobSearch(e.target.value)}/>
+            </div>
+            <span style={S.count}>{mobFiltered.length} / {mobiles.length}</span>
+          </div>
+
+          <div style={S.tableWrap}>
+            <div style={{ overflowX:"auto" }}>
+              <table style={S.table}>
+                <thead><tr>
+                  {MOB_COLS.map(c=>(
+                    <th key={c.key} className="th" onClick={()=>setMobSort(s=>({col:c.key,dir:s.col===c.key&&s.dir==="asc"?"desc":"asc"}))}>
+                      {c.label}<SortArrow active={mobSort.col===c.key} dir={mobSort.dir}/>
+                    </th>
+                  ))}
+                  <th className="th" style={{ textAlign:"right" }}>Actions</th>
+                </tr></thead>
+                <tbody>
+                  {mobFiltered.length===0
+                    ? <tr><td colSpan={MOB_COLS.length+1} style={{ padding:"60px 0",textAlign:"center",color:"#94a3b8",fontSize:14 }}>No mobile phones match your filters.</td></tr>
+                    : mobFiltered.map(a=>(
+                      <tr key={a.id} className="row">
+                        <td className="td mono" style={{ color:"#22c55e" }}>{a.id}</td>
+                        <td className="td"><strong style={{ color:"#0f172a" }}>{a.userName||<Dash/>}</strong></td>
+                        <td className="td mono sm" style={{ color:"#64748b" }}>{a.mobileImei||<Dash/>}</td>
+                        <td className="td muted">{a.mobileNo||<Dash/>}</td>
+                        <td className="td muted">{a.modelName||<Dash/>}</td>
+                        <td className="td mono sm" style={{ color:"#a78bfa" }}>{a.invoiceNo||<Dash/>}</td>
+                        <td className="td muted sm">{a.location||<Dash/>}</td>
+                        <td className="td" style={{ textAlign:"right" }}>
+                          <button className="ico" title="Edit" onClick={()=>{ setMobForm({...a}); setMobErr(""); setMobModal({mode:"edit",asset:a}); }}>✏️</button>
+                          <button className="ico danger" title="Delete" onClick={()=>setMobDel(a)}>🗑</button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+      )}
+
+      {/* ══════════════ PRINTERS TAB ══════════════ */}
+      {activeTab==="printers" && (
+        <main style={S.main}>
+          <div style={{ ...S.cards, gridTemplateColumns:"repeat(2,1fr)" }}>
+            {[
+              { label:"Total Printers", val:prnCounts.total,   accent:"#f59e0b" },
+              { label:"Outlets",        val:prnCounts.outlets, accent:"#0ea5e9" },
+            ].map(c=>(
+              <div key={c.label} style={{ ...S.card, borderTopColor:c.accent }}>
+                <div style={{ fontSize:30,fontWeight:700,color:c.accent,lineHeight:1 }}>{c.val}</div>
+                <div style={S.cardLabel}>{c.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={S.filters}>
+            <div style={S.searchBox}>
+              <SearchIcon/>
+              <input className="inp" style={{ paddingLeft:36 }} placeholder="Search by outlet, serial number, model…" value={prnSearch} onChange={e=>setPrnSearch(e.target.value)}/>
+            </div>
+            <span style={S.count}>{prnFiltered.length} / {printers.length}</span>
+          </div>
+
+          <div style={S.tableWrap}>
+            <div style={{ overflowX:"auto" }}>
+              <table style={S.table}>
+                <thead><tr>
+                  {PRN_COLS.map(c=>(
+                    <th key={c.key} className="th" onClick={()=>setPrnSort(s=>({col:c.key,dir:s.col===c.key&&s.dir==="asc"?"desc":"asc"}))}>
+                      {c.label}<SortArrow active={prnSort.col===c.key} dir={prnSort.dir}/>
+                    </th>
+                  ))}
+                  <th className="th" style={{ textAlign:"right" }}>Actions</th>
+                </tr></thead>
+                <tbody>
+                  {prnFiltered.length===0
+                    ? <tr><td colSpan={PRN_COLS.length+1} style={{ padding:"60px 0",textAlign:"center",color:"#94a3b8",fontSize:14 }}>No printers match your filters.</td></tr>
+                    : prnFiltered.map(a=>(
+                      <tr key={a.id} className="row">
+                        <td className="td mono" style={{ color:"#f59e0b" }}>{a.id}</td>
+                        <td className="td"><strong style={{ color:"#0f172a" }}>{a.outletName||<Dash/>}</strong></td>
+                        <td className="td mono sm" style={{ color:"#64748b" }}>{a.serialNumber||<Dash/>}</td>
+                        <td className="td muted">{a.modelName||<Dash/>}</td>
+                        <td className="td" style={{ textAlign:"right" }}>
+                          <button className="ico" title="Edit" onClick={()=>{ setPrnForm({...a}); setPrnErr(""); setPrnModal({mode:"edit",asset:a}); }}>✏️</button>
+                          <button className="ico danger" title="Delete" onClick={()=>setPrnDel(a)}>🗑</button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+      )}
+
+      {/* ══════════════ FIXED ASSETS TAB ══════════════ */}
+      {activeTab==="fixedassets" && (
+        <main style={S.main}>
+          <div style={{ ...S.cards, gridTemplateColumns:"repeat(2,1fr)" }}>
+            {[
+              { label:"Total Records", val:faCounts.total,                                 accent:"#14b8a6" },
+              { label:"Total Qty",     val:faCounts.totalQty.toLocaleString("en-IN"),      accent:"#8b5cf6" },
+            ].map(c=>(
+              <div key={c.label} style={{ ...S.card, borderTopColor:c.accent }}>
+                <div style={{ fontSize:30,fontWeight:700,color:c.accent,lineHeight:1 }}>{c.val}</div>
+                <div style={S.cardLabel}>{c.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={S.filters}>
+            <div style={S.searchBox}>
+              <SearchIcon/>
+              <input className="inp" style={{ paddingLeft:36 }} placeholder="Search by store, asset code, serial, brand, details…" value={faSearch} onChange={e=>setFaSearch(e.target.value)}/>
+            </div>
+            <span style={S.count}>{faFiltered.length} / {fixedAssets.length}</span>
+          </div>
+
+          <div style={S.tableWrap}>
+            <div style={{ overflowX:"auto" }}>
+              <table style={S.table}>
+                <thead><tr>
+                  {FA_COLS.map(c=>(
+                    <th key={c.key} className="th" onClick={()=>setFaSort(s=>({col:c.key,dir:s.col===c.key&&s.dir==="asc"?"desc":"asc"}))}>
+                      {c.label}<SortArrow active={faSort.col===c.key} dir={faSort.dir}/>
+                    </th>
+                  ))}
+                  <th className="th" style={{ textAlign:"right" }}>Actions</th>
+                </tr></thead>
+                <tbody>
+                  {faFiltered.length===0
+                    ? <tr><td colSpan={FA_COLS.length+1} style={{ padding:"60px 0",textAlign:"center",color:"#94a3b8",fontSize:14 }}>No fixed assets match your filters.</td></tr>
+                    : faFiltered.map(a=>(
+                      <tr key={a.id} className="row">
+                        <td className="td mono" style={{ color:"#14b8a6" }}>{a.id}</td>
+                        <td className="td"><strong style={{ color:"#0f172a" }}>{a.storeName||<Dash/>}</strong></td>
+                        <td className="td mono sm" style={{ color:"#a78bfa" }}>{a.assetCode||<Dash/>}</td>
+                        <td className="td mono sm" style={{ color:"#64748b" }}>{a.serialNo||<Dash/>}</td>
+                        <td className="td muted">{a.brandName||<Dash/>}</td>
+                        <td className="td muted">{a.assetDetails||<Dash/>}</td>
+                        <td className="td" style={{ textAlign:"right", color:"#334155", fontWeight:600 }}>{a.qty||<Dash/>}</td>
+                        <td className="td" style={{ textAlign:"right" }}>
+                          <button className="ico" title="Edit" onClick={()=>{ setFaForm({...a}); setFaErr(""); setFaModal({mode:"edit",asset:a}); }}>✏️</button>
+                          <button className="ico danger" title="Delete" onClick={()=>setFaDel(a)}>🗑</button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+      )}
+
       {/* ══ IT Add/Edit Modal ══ */}
       {itModal && (
         <div className="overlay" onClick={()=>setItModal(null)}>
@@ -600,6 +1076,88 @@ export default function App() {
         </div>
       )}
 
+      {/* ══ Mobile Phones Add/Edit Modal ══ */}
+      {mobModal && (
+        <div className="overlay" onClick={()=>setMobModal(null)}>
+          <div style={S.modal} onClick={e=>e.stopPropagation()}>
+            <div style={S.mHead}>
+              <span style={{ fontWeight:700,fontSize:15,color:"#0f172a" }}>{mobModal.mode==="add"?"Add Mobile Phone":`Edit — ${mobModal.asset.id}`}</span>
+              <button className="ico" onClick={()=>setMobModal(null)} style={{ fontSize:22,lineHeight:1 }}>×</button>
+            </div>
+            <div style={{ padding:"24px 28px" }}>
+              {mobErr && <div style={S.errBox}>{mobErr}</div>}
+              <div style={S.grid2}>
+                <FField label="User Name *"    val={mobForm.userName}   set={v=>fm("userName",v)}   ph="Employee name"/>
+                <FField label="IMEI Number *"  val={mobForm.mobileImei} set={v=>fm("mobileImei",v)} ph="e.g. 354678901234567"/>
+                <FField label="Mobile No"      val={mobForm.mobileNo}   set={v=>fm("mobileNo",v)}   ph="e.g. 9876543210"/>
+                <FField label="Model Name"     val={mobForm.modelName}  set={v=>fm("modelName",v)}  ph="e.g. Samsung Galaxy S23"/>
+                <FField label="Invoice No"     val={mobForm.invoiceNo}  set={v=>fm("invoiceNo",v)}  ph="e.g. INV-MOB-001"/>
+                <FField label="Location"       val={mobForm.location}   set={v=>fm("location",v)}   ph="Office / Branch"/>
+              </div>
+              <div style={{ display:"flex",gap:10,justifyContent:"flex-end",marginTop:22 }}>
+                <button className="btn-sec" onClick={()=>setMobModal(null)}>Cancel</button>
+                <button style={S.btnGreen} onClick={saveMob}>{mobModal.mode==="add"?"Add Mobile":"Save Changes"}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ Printers Add/Edit Modal ══ */}
+      {prnModal && (
+        <div className="overlay" onClick={()=>setPrnModal(null)}>
+          <div style={S.modal} onClick={e=>e.stopPropagation()}>
+            <div style={S.mHead}>
+              <span style={{ fontWeight:700,fontSize:15,color:"#0f172a" }}>{prnModal.mode==="add"?"Add Printer":`Edit — ${prnModal.asset.id}`}</span>
+              <button className="ico" onClick={()=>setPrnModal(null)} style={{ fontSize:22,lineHeight:1 }}>×</button>
+            </div>
+            <div style={{ padding:"24px 28px" }}>
+              {prnErr && <div style={S.errBox}>{prnErr}</div>}
+              <div style={S.grid2}>
+                <FField label="Outlet Name *"    val={prnForm.outletName}   set={v=>fp("outletName",v)}   ph="e.g. Bangalore HQ"/>
+                <FField label="Serial Number *"  val={prnForm.serialNumber} set={v=>fp("serialNumber",v)} ph="e.g. HP-SN-001"/>
+                <div style={{ gridColumn:"1/-1" }}>
+                  <FField label="Model Name"     val={prnForm.modelName}    set={v=>fp("modelName",v)}    ph="e.g. HP LaserJet Pro M404n"/>
+                </div>
+              </div>
+              <div style={{ display:"flex",gap:10,justifyContent:"flex-end",marginTop:22 }}>
+                <button className="btn-sec" onClick={()=>setPrnModal(null)}>Cancel</button>
+                <button style={S.btnOrange} onClick={savePrn}>{prnModal.mode==="add"?"Add Printer":"Save Changes"}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ Fixed Assets Add/Edit Modal ══ */}
+      {faModal && (
+        <div className="overlay" onClick={()=>setFaModal(null)}>
+          <div style={S.modal} onClick={e=>e.stopPropagation()}>
+            <div style={S.mHead}>
+              <span style={{ fontWeight:700,fontSize:15,color:"#0f172a" }}>{faModal.mode==="add"?"Add Fixed Asset":`Edit — ${faModal.asset.id}`}</span>
+              <button className="ico" onClick={()=>setFaModal(null)} style={{ fontSize:22,lineHeight:1 }}>×</button>
+            </div>
+            <div style={{ padding:"24px 28px" }}>
+              {faErr && <div style={S.errBox}>{faErr}</div>}
+              <div style={S.grid2}>
+                <FField label="Store Name *"   val={faForm.storeName}    set={v=>ff("storeName",v)}    ph="e.g. Bangalore HQ"/>
+                <FField label="Asset Code *"   val={faForm.assetCode}    set={v=>ff("assetCode",v)}    ph="e.g. KFJ-FA-001"/>
+                <FField label="Serial No"      val={faForm.serialNo}     set={v=>ff("serialNo",v)}     ph="e.g. FA-SN-001"/>
+                <FField label="Brand Name"     val={faForm.brandName}    set={v=>ff("brandName",v)}    ph="e.g. Godrej"/>
+                <div style={{ gridColumn:"1/-1" }}>
+                  <FField label="Asset Details" val={faForm.assetDetails} set={v=>ff("assetDetails",v)} ph="e.g. Steel Almirah 4-door"/>
+                </div>
+                <FField label="Qty"            val={faForm.qty}          set={v=>ff("qty",v)}          ph="e.g. 2"/>
+              </div>
+              <div style={{ display:"flex",gap:10,justifyContent:"flex-end",marginTop:22 }}>
+                <button className="btn-sec" onClick={()=>setFaModal(null)}>Cancel</button>
+                <button style={S.btnTeal} onClick={saveFa}>{faModal.mode==="add"?"Add Fixed Asset":"Save Changes"}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ══ IT Delete ══ */}
       {itDel && (
         <div className="overlay" onClick={()=>setItDel(null)}>
@@ -642,6 +1200,69 @@ export default function App() {
         </div>
       )}
 
+      {/* ══ Mobile Delete ══ */}
+      {mobDel && (
+        <div className="overlay" onClick={()=>setMobDel(null)}>
+          <div style={{ ...S.modal,maxWidth:400 }} onClick={e=>e.stopPropagation()}>
+            <div style={S.mHead}>
+              <span style={{ fontWeight:700,color:"#dc2626" }}>Delete Mobile</span>
+              <button className="ico" onClick={()=>setMobDel(null)} style={{ fontSize:22 }}>×</button>
+            </div>
+            <div style={{ padding:"20px 28px" }}>
+              <p style={{ fontSize:14,color:"#64748b",lineHeight:1.8,marginBottom:20 }}>
+                Permanently delete <strong style={{ color:"#0f172a" }}>{mobDel.modelName||mobDel.userName}</strong> ({mobDel.id})?<br/>This cannot be undone.
+              </p>
+              <div style={{ display:"flex",gap:10,justifyContent:"flex-end" }}>
+                <button className="btn-sec" onClick={()=>setMobDel(null)}>Cancel</button>
+                <button className="btn-del" onClick={deleteMob}>Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ Printer Delete ══ */}
+      {prnDel && (
+        <div className="overlay" onClick={()=>setPrnDel(null)}>
+          <div style={{ ...S.modal,maxWidth:400 }} onClick={e=>e.stopPropagation()}>
+            <div style={S.mHead}>
+              <span style={{ fontWeight:700,color:"#dc2626" }}>Delete Printer</span>
+              <button className="ico" onClick={()=>setPrnDel(null)} style={{ fontSize:22 }}>×</button>
+            </div>
+            <div style={{ padding:"20px 28px" }}>
+              <p style={{ fontSize:14,color:"#64748b",lineHeight:1.8,marginBottom:20 }}>
+                Permanently delete <strong style={{ color:"#0f172a" }}>{prnDel.modelName||prnDel.outletName}</strong> ({prnDel.id})?<br/>This cannot be undone.
+              </p>
+              <div style={{ display:"flex",gap:10,justifyContent:"flex-end" }}>
+                <button className="btn-sec" onClick={()=>setPrnDel(null)}>Cancel</button>
+                <button className="btn-del" onClick={deletePrn}>Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ Fixed Asset Delete ══ */}
+      {faDel && (
+        <div className="overlay" onClick={()=>setFaDel(null)}>
+          <div style={{ ...S.modal,maxWidth:400 }} onClick={e=>e.stopPropagation()}>
+            <div style={S.mHead}>
+              <span style={{ fontWeight:700,color:"#dc2626" }}>Delete Fixed Asset</span>
+              <button className="ico" onClick={()=>setFaDel(null)} style={{ fontSize:22 }}>×</button>
+            </div>
+            <div style={{ padding:"20px 28px" }}>
+              <p style={{ fontSize:14,color:"#64748b",lineHeight:1.8,marginBottom:20 }}>
+                Permanently delete <strong style={{ color:"#0f172a" }}>{faDel.assetDetails||faDel.assetCode}</strong> ({faDel.id})?<br/>This cannot be undone.
+              </p>
+              <div style={{ display:"flex",gap:10,justifyContent:"flex-end" }}>
+                <button className="btn-sec" onClick={()=>setFaDel(null)}>Cancel</button>
+                <button className="btn-del" onClick={deleteFa}>Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ══ IT CSV Preview ══ */}
       {itUpload && (
         <div className="overlay" onClick={()=>setItUpload(false)}>
@@ -664,6 +1285,45 @@ export default function App() {
               <button className="ico" onClick={()=>setStUpload(false)} style={{ fontSize:22 }}>×</button>
             </div>
             <CsvPreview rows={stCsvPreview} onCancel={()=>setStUpload(false)} onConfirm={confirmStUpload}/>
+          </div>
+        </div>
+      )}
+
+      {/* ══ Mobile CSV Preview ══ */}
+      {mobUpload && (
+        <div className="overlay" onClick={()=>setMobUpload(false)}>
+          <div style={{ ...S.modal,maxWidth:600 }} onClick={e=>e.stopPropagation()}>
+            <div style={S.mHead}>
+              <span style={{ fontWeight:700,fontSize:15,color:"#0f172a" }}>📂 Mobile Phones — Upload Preview</span>
+              <button className="ico" onClick={()=>setMobUpload(false)} style={{ fontSize:22 }}>×</button>
+            </div>
+            <CsvPreview rows={mobCsvPreview} onCancel={()=>setMobUpload(false)} onConfirm={confirmMobUpload}/>
+          </div>
+        </div>
+      )}
+
+      {/* ══ Printer CSV Preview ══ */}
+      {prnUpload && (
+        <div className="overlay" onClick={()=>setPrnUpload(false)}>
+          <div style={{ ...S.modal,maxWidth:600 }} onClick={e=>e.stopPropagation()}>
+            <div style={S.mHead}>
+              <span style={{ fontWeight:700,fontSize:15,color:"#0f172a" }}>📂 Printers — Upload Preview</span>
+              <button className="ico" onClick={()=>setPrnUpload(false)} style={{ fontSize:22 }}>×</button>
+            </div>
+            <CsvPreview rows={prnCsvPreview} onCancel={()=>setPrnUpload(false)} onConfirm={confirmPrnUpload}/>
+          </div>
+        </div>
+      )}
+
+      {/* ══ Fixed Assets CSV Preview ══ */}
+      {faUpload && (
+        <div className="overlay" onClick={()=>setFaUpload(false)}>
+          <div style={{ ...S.modal,maxWidth:600 }} onClick={e=>e.stopPropagation()}>
+            <div style={S.mHead}>
+              <span style={{ fontWeight:700,fontSize:15,color:"#0f172a" }}>📂 Fixed Assets — Upload Preview</span>
+              <button className="ico" onClick={()=>setFaUpload(false)} style={{ fontSize:22 }}>×</button>
+            </div>
+            <CsvPreview rows={faCsvPreview} onCancel={()=>setFaUpload(false)} onConfirm={confirmFaUpload}/>
           </div>
         </div>
       )}
@@ -777,6 +1437,9 @@ const S = {
   toastOk:   { background:"#f0fdf4", borderColor:"#bbf7d0", color:"#16a34a" },
   toastWarn: { background:"#fef2f2", borderColor:"#fecaca", color:"#dc2626" },
   btnPurple: { display:"inline-flex", alignItems:"center", gap:6, background:"#8b5cf6", color:"#fff", border:"none", borderRadius:7, padding:"9px 16px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" },
+  btnGreen:  { display:"inline-flex", alignItems:"center", gap:6, background:"#16a34a", color:"#fff", border:"none", borderRadius:7, padding:"9px 16px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" },
+  btnOrange: { display:"inline-flex", alignItems:"center", gap:6, background:"#ea580c", color:"#fff", border:"none", borderRadius:7, padding:"9px 16px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" },
+  btnTeal:   { display:"inline-flex", alignItems:"center", gap:6, background:"#0d9488", color:"#fff", border:"none", borderRadius:7, padding:"9px 16px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" },
 };
 
 const CSS = `
@@ -812,7 +1475,7 @@ const CSS = `
   .ico:hover { background:#f1f5f9; color:#334155; }
   .ico.danger:hover { background:#fef2f2; }
   .overlay { position:fixed; inset:0; background:rgba(15,23,42,.5); z-index:100; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(6px); }
-  .tab { background:transparent; border:none; border-radius:7px; padding:8px 16px; font-size:13px; font-weight:600; color:#64748b; cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap; }
+  .tab { background:transparent; border:none; border-radius:7px; padding:6px 12px; font-size:12px; font-weight:600; color:#64748b; cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap; }
   .tab:hover { color:#1e293b; }
   .tab-active { background:#ffffff; color:#0f172a; box-shadow:0 1px 3px rgba(0,0,0,.1); }
 `;
