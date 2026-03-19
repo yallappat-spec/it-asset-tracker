@@ -327,9 +327,9 @@ export default function App() {
     const hdr = lines[0].split(",").map(h=>h.replace(/"/g,"").trim());
     const MAP = { "Product":"product","Product Manufacturer":"manufacturer","Asset Name":"name","Asset Tag":"assetTag","Serial Number":"serial","Acquisition Date":"acquisition","Warranty Expiry Date":"warranty","Location":"location","Asset State":"status","Assign to User":"assignedTo","Assign to Department":"department","Asset Type":"type","Invoice Number":"invoice" };
     const items = lines.slice(1).map(line=>{ const v=line.split(",").map(x=>x.replace(/"/g,"").trim()); const o={id:genItId()}; hdr.forEach((h,i)=>{ o[MAP[h]||h]=v[i]||""; }); return o; });
-    const next = [...assets, ...items];
+    const next = items;
     setAssets(next); lsSet("it_assets", next); saveSheet("it", next);
-    showToast(`${items.length} assets uploaded!`); setItUpload(false); setItCsvPreview([]); setItCsvRaw("");
+    showToast(`${items.length} assets uploaded! Previous data replaced.`); setItUpload(false); setItCsvPreview([]); setItCsvRaw("");
   };
 
   const fi = (k,v) => setItForm(p=>({...p,[k]:v}));
@@ -395,9 +395,9 @@ export default function App() {
     const hdr = lines[0].split(",").map(h=>h.replace(/"/g,"").trim());
     const MAP = { "Particulars":"particulars","Qty":"qty","Unit Price":"unitPrice","Unit type":"unitType","Total":"total","Asset Code":"assetCode","Vendor Name":"vendorName","Invoice Date":"invoiceDate","Invoice Number":"invoiceNumber" };
     const items = lines.slice(1).map(line=>{ const v=line.split(",").map(x=>x.replace(/"/g,"").trim()); const o={id:genStId()}; hdr.forEach((h,i)=>{ o[MAP[h]||h]=v[i]||""; }); return o; });
-    const next = [...studio, ...items];
+    const next = items;
     setStudio(next); lsSet("st_items", next); saveSheet("studio", next);
-    showToast(`${items.length} items uploaded!`); setStUpload(false); setStCsvPreview([]); setStCsvRaw("");
+    showToast(`${items.length} items uploaded! Previous data replaced.`); setStUpload(false); setStCsvPreview([]); setStCsvRaw("");
   };
 
   const fs = (k,v) => setStForm(p=>({...p,[k]:v}));
@@ -454,7 +454,7 @@ export default function App() {
     const hdr = lines[0].split(",").map(h=>h.replace(/"/g,"").trim());
     const MAP = { "User Name":"userName","IMEI Number":"mobileImei","Mobile No":"mobileNo","Model Name":"modelName","Invoice No":"invoiceNo","Location":"location" };
     const items = lines.slice(1).map(line=>{ const v=line.split(",").map(x=>x.replace(/"/g,"").trim()); const o={id:genMobId()}; hdr.forEach((h,i)=>{ o[MAP[h]||h]=v[i]||""; }); return o; });
-    const next = [...mobiles, ...items];
+    const next = items;
     setMobiles(next); lsSet("mob_items", next); saveSheet("mobile", next);
     showToast(`${items.length} mobiles uploaded!`); setMobUpload(false); setMobCsvPreview([]); setMobCsvRaw("");
   };
@@ -513,7 +513,7 @@ export default function App() {
     const hdr = lines[0].split(",").map(h=>h.replace(/"/g,"").trim());
     const MAP = { "Outlet Name":"outletName","Serial Number":"serialNumber","Model Name":"modelName" };
     const items = lines.slice(1).map(line=>{ const v=line.split(",").map(x=>x.replace(/"/g,"").trim()); const o={id:genPrnId()}; hdr.forEach((h,i)=>{ o[MAP[h]||h]=v[i]||""; }); return o; });
-    const next = [...printers, ...items];
+    const next = items;
     setPrinters(next); lsSet("prn_items", next); saveSheet("printer", next);
     showToast(`${items.length} printers uploaded!`); setPrnUpload(false); setPrnCsvPreview([]); setPrnCsvRaw("");
   };
@@ -572,7 +572,7 @@ export default function App() {
     const hdr = lines[0].split(",").map(h=>h.replace(/"/g,"").trim());
     const MAP = { "Store Name":"storeName","Asset Code":"assetCode","Serial No":"serialNo","Brand Name":"brandName","Asset Details":"assetDetails","Qty":"qty" };
     const items = lines.slice(1).map(line=>{ const v=line.split(",").map(x=>x.replace(/"/g,"").trim()); const o={id:genFaId()}; hdr.forEach((h,i)=>{ o[MAP[h]||h]=v[i]||""; }); return o; });
-    const next = [...fixedAssets, ...items];
+    const next = items;
     setFixedAssets(next); lsSet("fa_items", next); saveSheet("fixedasset", next);
     showToast(`${items.length} fixed assets uploaded!`); setFaUpload(false); setFaCsvPreview([]); setFaCsvRaw("");
   };
