@@ -254,11 +254,16 @@ export default function App() {
     fetch(SHEET_URL)
       .then(r => r.json())
       .then(d => {
-        if (d.it && d.it.length)                   { setAssets(d.it);           lsSet("it_assets", d.it); }
-        if (d.studio && d.studio.length)           { setStudio(d.studio);       lsSet("st_items", d.studio); }
-        if (d.mobile && d.mobile.length)           { setMobiles(d.mobile);      lsSet("mob_items", d.mobile); }
-        if (d.printer && d.printer.length)         { setPrinters(d.printer);    lsSet("prn_items", d.printer); }
-        if (d.fixedasset && d.fixedasset.length)   { setFixedAssets(d.fixedasset); lsSet("fa_items", d.fixedasset); }
+        const localIt  = lsGet("it_assets",  []);
+        const localSt  = lsGet("st_items",   []);
+        const localMob = lsGet("mob_items",  []);
+        const localPrn = lsGet("prn_items",  []);
+        const localFa  = lsGet("fa_items",   []);
+        if (d.it         && d.it.length         >= localIt.length)  { setAssets(d.it);               lsSet("it_assets",  d.it);         }
+        if (d.studio     && d.studio.length     >= localSt.length)  { setStudio(d.studio);            lsSet("st_items",   d.studio);     }
+        if (d.mobile     && d.mobile.length     >= localMob.length) { setMobiles(d.mobile);           lsSet("mob_items",  d.mobile);     }
+        if (d.printer    && d.printer.length    >= localPrn.length) { setPrinters(d.printer);         lsSet("prn_items",  d.printer);    }
+        if (d.fixedasset && d.fixedasset.length >= localFa.length)  { setFixedAssets(d.fixedasset);   lsSet("fa_items",   d.fixedasset); }
       })
       .catch(() => {})
       .finally(() => { setSyncing(false); initialized.current = true; });
